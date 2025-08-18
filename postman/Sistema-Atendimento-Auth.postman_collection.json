@@ -1,0 +1,1127 @@
+{
+	"info": {
+		"_postman_id": "12345678-1234-1234-1234-123456789012",
+		"name": "Sistema de Atendimento - Autenticação e Permissões",
+		"description": "Coleção completa para testar todos os endpoints do sistema de autenticação com permissões granulares",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12345678"
+	},
+	"item": [
+		{
+			"name": "🔐 Autenticação",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    pm.environment.set('access_token', responseJson.access_token);",
+									"    pm.environment.set('user_id', responseJson.user.id);",
+									"    pm.environment.set('organization_id', responseJson.user.organizationId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@empresa.com\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Realiza login no sistema e obtém token JWT"
+					},
+					"response": []
+				},
+				{
+					"name": "Login como Usuário",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    pm.environment.set('user_access_token', responseJson.access_token);",
+									"    pm.environment.set('user_user_id', responseJson.user.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"usuario@empresa.com\",\n  \"password\": \"user123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login como usuário comum para testar permissões limitadas"
+					},
+					"response": []
+				},
+				{
+					"name": "Registro",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Novo Usuário\",\n  \"email\": \"novo@empresa.com\",\n  \"password\": \"senha123\",\n  \"organizationId\": \"{{organization_id}}\",\n  \"role\": \"ORG_USER\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Registra um novo usuário no sistema"
+					},
+					"response": []
+				},
+				{
+					"name": "Perfil do Usuário",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Obtém perfil do usuário autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Realiza logout do usuário"
+					},
+					"response": []
+				},
+				{
+					"name": "Esqueceu a Senha",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"usuario@empresa.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/forgot-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"forgot-password"
+							]
+						},
+						"description": "Solicita reset de senha"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset de Senha",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"reset_token_aqui\",\n  \"newPassword\": \"novaSenha123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/reset-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"reset-password"
+							]
+						},
+						"description": "Confirma reset de senha com token"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de autenticação básica"
+		},
+		{
+			"name": "👥 Gerenciamento de Usuários",
+			"item": [
+				{
+					"name": "Listar Usuários",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/users?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lista usuários com paginação (requer permissão READ USERS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Usuário por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/users/{{user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"users",
+								"{{user_id}}"
+							]
+						},
+						"description": "Busca usuário específico por ID (requer permissão READ USERS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Usuário",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Nome Atualizado\",\n  \"email\": \"email.atualizado@empresa.com\",\n  \"role\": \"ORG_ADMIN\",\n  \"status\": \"ACTIVE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/users/{{user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"users",
+								"{{user_id}}"
+							]
+						},
+						"description": "Atualiza dados do usuário (requer permissão UPDATE USERS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Usuário",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/users/{{user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"users",
+								"{{user_id}}"
+							]
+						},
+						"description": "Remove usuário do sistema (requer permissão DELETE USERS)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciar usuários"
+		},
+		{
+			"name": "🔑 Gerenciamento de Permissões",
+			"item": [
+				{
+					"name": "Listar Todas as Permissões",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"permissions"
+							]
+						},
+						"description": "Lista todas as permissões disponíveis no sistema"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Permissões do Usuário",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/users/{{user_id}}/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"users",
+								"{{user_id}}",
+								"permissions"
+							]
+						},
+						"description": "Obtém todas as permissões de um usuário específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Adicionar Permissões ao Usuário",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permissionIds\": [1, 2, 3]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/users/{{user_id}}/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"users",
+								"{{user_id}}",
+								"permissions"
+							]
+						},
+						"description": "Adiciona permissões específicas a um usuário"
+					},
+					"response": []
+				},
+				{
+					"name": "Remover Permissões do Usuário",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permissionIds\": [1, 2]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/users/{{user_id}}/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"users",
+								"{{user_id}}",
+								"permissions"
+							]
+						},
+						"description": "Remove permissões específicas de um usuário"
+					},
+					"response": []
+				},
+				{
+					"name": "Setup Inicial de Permissões",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/setup-permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"setup-permissions"
+							]
+						},
+						"description": "Configura permissões padrão para roles do sistema"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciar permissões"
+		},
+		{
+			"name": "💬 Sessões de Atendimento",
+			"item": [
+				{
+					"name": "Listar Sessões",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/sessions?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lista sessões de atendimento (requer permissão READ SESSIONS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Sessão",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const responseJson = pm.response.json();",
+									"    pm.environment.set('session_id', responseJson.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contactId\": \"contact-uuid-here\",\n  \"channel\": \"WHATSAPP\",\n  \"subject\": \"Suporte técnico\",\n  \"priority\": \"MEDIUM\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions"
+							]
+						},
+						"description": "Cria nova sessão de atendimento (requer permissão CREATE SESSIONS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Sessão por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/sessions/{{session_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								"{{session_id}}"
+							]
+						},
+						"description": "Busca sessão específica por ID (requer permissão READ SESSIONS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Sessão",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"subject\": \"Suporte técnico - Atualizado\",\n  \"priority\": \"HIGH\",\n  \"status\": \"IN_PROGRESS\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sessions/{{session_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								"{{session_id}}"
+							]
+						},
+						"description": "Atualiza dados da sessão (requer permissão UPDATE SESSIONS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Sessão",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/sessions/{{session_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								"{{session_id}}"
+							]
+						},
+						"description": "Remove sessão (requer permissão DELETE SESSIONS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Atribuir Sessão a Atendente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"assignedToId\": \"{{user_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sessions/{{session_id}}/assign",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								"{{session_id}}",
+								"assign"
+							]
+						},
+						"description": "Atribui sessão a um atendente (requer permissão MANAGE SESSIONS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Encerrar Sessão",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"resolution\": \"Problema resolvido com sucesso\",\n  \"rating\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sessions/{{session_id}}/close",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								"{{session_id}}",
+								"close"
+							]
+						},
+						"description": "Encerra sessão com resolução (requer permissão UPDATE SESSIONS)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciar sessões de atendimento"
+		},
+		{
+			"name": "👤 Contatos",
+			"item": [
+				{
+					"name": "Listar Contatos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/contacts?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contacts"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lista contatos (requer permissão READ CONTACTS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Contato",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const responseJson = pm.response.json();",
+									"    pm.environment.set('contact_id', responseJson.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@cliente.com\",\n  \"phone\": \"+5511999999999\",\n  \"whatsapp\": \"+5511999999999\",\n  \"document\": \"12345678901\",\n  \"notes\": \"Cliente VIP\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/contacts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contacts"
+							]
+						},
+						"description": "Cria novo contato (requer permissão CREATE CONTACTS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Contato por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/contacts/{{contact_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contacts",
+								"{{contact_id}}"
+							]
+						},
+						"description": "Busca contato específico por ID (requer permissão READ CONTACTS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Contato",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva Santos\",\n  \"email\": \"joao.santos@cliente.com\",\n  \"phone\": \"+5511888888888\",\n  \"notes\": \"Cliente VIP - Atualizado\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/contacts/{{contact_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contacts",
+								"{{contact_id}}"
+							]
+						},
+						"description": "Atualiza dados do contato (requer permissão UPDATE CONTACTS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Contato",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/contacts/{{contact_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contacts",
+								"{{contact_id}}"
+							]
+						},
+						"description": "Remove contato (requer permissão DELETE CONTACTS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Importar Contatos",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contacts\": [\n    {\n      \"name\": \"Maria Oliveira\",\n      \"email\": \"maria@cliente.com\",\n      \"phone\": \"+5511777777777\"\n    },\n    {\n      \"name\": \"Pedro Santos\",\n      \"email\": \"pedro@cliente.com\",\n      \"phone\": \"+5511666666666\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/contacts/import",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contacts",
+								"import"
+							]
+						},
+						"description": "Importa múltiplos contatos (requer permissão CREATE CONTACTS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Sessões do Contato",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/contacts/{{contact_id}}/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contacts",
+								"{{contact_id}}",
+								"sessions"
+							]
+						},
+						"description": "Lista sessões de um contato específico (requer permissão READ SESSIONS)"
+					},
+					"response": []
+				},
+				{
+					"name": "Adicionar Tag ao Contato",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tag\": \"VIP\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/contacts/{{contact_id}}/tag",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contacts",
+								"{{contact_id}}",
+								"tag"
+							]
+						},
+						"description": "Adiciona tag ao contato (requer permissão UPDATE CONTACTS)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciar contatos"
+		},
+		{
+			"name": "🧪 Testes de Permissões",
+			"item": [
+				{
+					"name": "Teste: Usuário tenta deletar sessão (deve falhar)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/sessions/{{session_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								"{{session_id}}"
+							]
+						},
+						"description": "Teste para verificar se usuário comum não consegue deletar sessões"
+					},
+					"response": []
+				},
+				{
+					"name": "Teste: Usuário tenta criar sessão (deve funcionar)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contactId\": \"{{contact_id}}\",\n  \"channel\": \"EMAIL\",\n  \"subject\": \"Teste de criação por usuário\",\n  \"priority\": \"LOW\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions"
+							]
+						},
+						"description": "Teste para verificar se usuário comum consegue criar sessões"
+					},
+					"response": []
+				},
+				{
+					"name": "Teste: Usuário tenta gerenciar outros usuários (deve falhar)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"users"
+							]
+						},
+						"description": "Teste para verificar se usuário comum não consegue listar outros usuários"
+					},
+					"response": []
+				}
+			],
+			"description": "Requests para testar o sistema de permissões"
+		},
+		{
+			"name": "🏠 Sistema",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Verifica se o sistema está funcionando"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints do sistema"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:4000",
+			"type": "string"
+		}
+	]
+}
