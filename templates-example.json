@@ -1,0 +1,75 @@
+{
+  "templates": [
+    {
+      "name": "Saudação Matinal",
+      "content": "Bom dia, {nome}! Como você está hoje?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Pergunta Casual",
+      "content": "Oi {nome}! Tudo bem por aí? Como foi o seu dia?",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Saudação Vespertina",
+      "content": "{saudacao}, {nome}! Espero que esteja tendo um ótimo dia!",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Conversa Sobre Trabalho",
+      "content": "E aí {nome}, como estão as coisas no trabalho? Tudo correndo bem?",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Mensagem de Apoio",
+      "content": "Oi {nome}! Só passando aqui para desejar uma excelente semana para você! 😊",
+      "messageType": "text",
+      "weight": 1,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Clima",
+      "content": "Oi {nome}! Que dia lindo hoje, não é? Como você está aproveitando?",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Checagem Semanal",
+      "content": "Oi {nome}! Como foi a sua semana? Espero que tenha sido produtiva!",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Mensagem de Fim de Semana",
+      "content": "Oi {nome}! Que você tenha um fim de semana maravilhoso e relaxante! 🌟",
+      "messageType": "text",
+      "weight": 1,
+      "isActive": true
+    },
+    {
+      "name": "Conversa Sobre Hobbies",
+      "content": "E aí {nome}, tem feito alguma atividade interessante nos tempos livres?",
+      "messageType": "text",
+      "weight": 1,
+      "isActive": true
+    },
+    {
+      "name": "Saudação Noturna",
+      "content": "Boa noite, {nome}! Espero que tenha tido um dia incrível! Descanse bem! 🌙",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    }
+  ],
+  "replaceExisting": false
+}

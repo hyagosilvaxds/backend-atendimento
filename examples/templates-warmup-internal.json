@@ -1,0 +1,110 @@
+{
+  "templates": [
+    {
+      "name": "Conversa entre Departamentos",
+      "content": "Oi {nome}! Como estão as coisas por aí no setor de vocês? Tudo correndo bem?",
+      "messageType": "text",
+      "weight": 5,
+      "isActive": true
+    },
+    {
+      "name": "Alinhamento de Projetos",
+      "content": "{saudacao} {nome}! Vamos alinhar aqueles projetos hoje à tarde? Quando você tem um tempinho?",
+      "messageType": "text",
+      "weight": 4,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Sistema",
+      "content": "E aí {nome}! Viu as novidades do sistema? Está funcionando bem por aí?",
+      "messageType": "text",
+      "weight": 4,
+      "isActive": true
+    },
+    {
+      "name": "Coordenação de Equipe",
+      "content": "Oi {nome}! Como está a equipe? Precisam de algum apoio nosso aqui?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Reunião Informal",
+      "content": "{saudacao} {nome}! Que tal tomarmos um café e colocarmos o papo em dia?",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Compartilhamento de Info",
+      "content": "Oi {nome}! Tenho algumas informações que podem ser úteis para vocês. Vou te passar depois!",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Pergunta sobre Demandas",
+      "content": "E aí {nome}! Como está o volume de trabalho aí? Muito corrido?",
+      "messageType": "text",
+      "weight": 4,
+      "isActive": true
+    },
+    {
+      "name": "Colaboração entre Setores",
+      "content": "{saudacao} {nome}! Podemos colaborar naquele projeto que vocês estão tocando?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Troca de Experiências",
+      "content": "Oi {nome}! Como vocês resolveram aquela questão que comentaram? Deu certo?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Apoio Interdepartamental",
+      "content": "E aí {nome}! Se precisarem de alguma coisa aqui do nosso lado, é só falar!",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Metas",
+      "content": "{saudacao} {nome}! Como estão as metas deste mês? Conseguindo bater?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Discussão Técnica",
+      "content": "Oi {nome}! Aquela solução que implementaram funcionou bem? Podemos replicar aqui?",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Coordenação de Horários",
+      "content": "E aí {nome}! Qual o melhor horário para conversarmos sobre aquele assunto?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Feedback entre Equipes",
+      "content": "{saudacao} {nome}! Como está a integração entre nossas equipes? Alguma sugestão?",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Acompanhamento de Resultados",
+      "content": "Oi {nome}! Já saíram os resultados do mês? Como foi a performance?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    }
+  ],
+  "replaceExisting": false
+}

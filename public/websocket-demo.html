@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Notificações - Aquecimento WhatsApp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .notification {
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease-in;
+        }
+        .notification.session_disconnected {
+            background-color: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+        .notification.warmup_progress {
+            background-color: #d1ecf1;
+            border-left-color: #17a2b8;
+            color: #0c5460;
+        }
+        .notification.warmup_execution {
+            background-color: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        .notification.health_update {
+            background-color: #e2e3e5;
+            border-left-color: #6c757d;
+            color: #383d41;
+        }
+        .notification.multiple_disconnections {
+            background-color: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-connect {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-disconnect {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-test {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .btn-clear {
+            background-color: #6c757d;
+            color: white;
+        }
+        .config {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .notifications-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+        }
+        .timestamp {
+            font-size: 0.8em;
+            color: #6c757d;
+            float: right;
+        }
+        .health-score {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .health-excellent { background-color: #28a745; color: white; }
+        .health-good { background-color: #ffc107; color: #212529; }
+        .health-warning { background-color: #fd7e14; color: white; }
+        .health-danger { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Sistema de Notificações - Aquecimento WhatsApp</h1>
+        
+        <div class="controls">
+            <h3>Configuração da Conexão</h3>
+            <div class="config">
+                <input type="text" id="serverUrl" placeholder="URL do Servidor" value="http://localhost:4000">
+                <input type="text" id="authToken" placeholder="Token de Autenticação" value="">
+                <input type="text" id="organizationId" placeholder="ID da Organização" value="">
+            </div>
+            <button class="btn-connect" onclick="connect()">🔌 Conectar</button>
+            <button class="btn-disconnect" onclick="disconnect()">❌ Desconectar</button>
+            <button class="btn-test" onclick="testConnection()">🧪 Testar Conexão</button>
+            <button class="btn-clear" onclick="clearNotifications()">🗑️ Limpar Notificações</button>
+        </div>
+
+        <div id="connectionStatus" class="status disconnected">
+            ❌ Desconectado
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalNotifications">0</div>
+                <div>Total de Notificações</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="sessionsDisconnected">0</div>
+                <div>Sessões Desconectadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="warmupExecutions">0</div>
+                <div>Execuções de Aquecimento</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="healthUpdates">0</div>
+                <div>Atualizações de Saúde</div>
+            </div>
+        </div>
+
+        <h3>📢 Notificações em Tempo Real</h3>
+        <div id="notifications" class="notifications-container">
+            <div style="text-align: center; color: #6c757d; padding: 20px;">
+                Aguardando notificações...
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket = null;
+        let stats = {
+            total: 0,
+            sessionsDisconnected: 0,
+            warmupExecutions: 0,
+            healthUpdates: 0
+        };
+
+        function connect() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const authToken = document.getElementById('authToken').value;
+            const organizationId = document.getElementById('organizationId').value;
+
+            if (!authToken || !organizationId) {
+                alert('Por favor, preencha o token de autenticação e ID da organização');
+                return;
+            }
+
+            socket = io(`${serverUrl}/notifications`, {
+                auth: {
+                    token: authToken,
+                    organizationId: organizationId
+                }
+            });
+
+            socket.on('connect', () => {
+                updateConnectionStatus(true);
+                addNotification('system', { message: 'Conectado ao sistema de notificações' });
+            });
+
+            socket.on('disconnect', () => {
+                updateConnectionStatus(false);
+                addNotification('system', { message: 'Desconectado do sistema de notificações' });
+            });
+
+            socket.on('connected', (data) => {
+                addNotification('system', data);
+            });
+
+            // Notificações de sessão desconectada
+            socket.on('session_disconnected', (notification) => {
+                stats.sessionsDisconnected++;
+                updateStats();
+                addNotification('session_disconnected', notification);
+            });
+
+            // Notificações de progresso do aquecimento
+            socket.on('warmup_progress', (notification) => {
+                addNotification('warmup_progress', notification);
+            });
+
+            // Notificações de execução de aquecimento
+            socket.on('warmup_execution', (notification) => {
+                stats.warmupExecutions++;
+                updateStats();
+                addNotification('warmup_execution', notification);
+            });
+
+            // Notificações de atualização de saúde
+            socket.on('health_update', (notification) => {
+                stats.healthUpdates++;
+                updateStats();
+                addNotification('health_update', notification);
+            });
+
+            // Notificações de múltiplas desconexões
+            socket.on('multiple_disconnections', (notification) => {
+                addNotification('multiple_disconnections', notification);
+            });
+
+            // Notificação de limite diário atingido
+            socket.on('daily_limit_reached', (notification) => {
+                addNotification('warmup_progress', notification);
+            });
+
+            // Teste de conectividade
+            socket.on('test_connection', (data) => {
+                addNotification('system', data);
+            });
+
+            socket.on('connect_error', (error) => {
+                console.error('Erro de conexão:', error);
+                updateConnectionStatus(false);
+                addNotification('error', { message: `Erro de conexão: ${error.message}` });
+            });
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+            updateConnectionStatus(false);
+        }
+
+        function testConnection() {
+            if (!socket || !socket.connected) {
+                alert('Conecte-se primeiro antes de testar');
+                return;
+            }
+
+            // Fazer uma requisição HTTP para testar
+            const serverUrl = document.getElementById('serverUrl').value;
+            const authToken = document.getElementById('authToken').value;
+
+            fetch(`${serverUrl}/notifications/test`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Teste realizado:', data);
+            })
+            .catch(error => {
+                console.error('Erro no teste:', error);
+                addNotification('error', { message: `Erro no teste: ${error.message}` });
+            });
+        }
+
+        function clearNotifications() {
+            document.getElementById('notifications').innerHTML = `
+                <div style="text-align: center; color: #6c757d; padding: 20px;">
+                    Aguardando notificações...
+                </div>
+            `;
+            stats = { total: 0, sessionsDisconnected: 0, warmupExecutions: 0, healthUpdates: 0 };
+            updateStats();
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (connected) {
+                statusElement.className = 'status connected';
+                statusElement.innerHTML = '✅ Conectado';
+            } else {
+                statusElement.className = 'status disconnected';
+                statusElement.innerHTML = '❌ Desconectado';
+            }
+        }
+
+        function updateStats() {
+            stats.total = stats.sessionsDisconnected + stats.warmupExecutions + stats.healthUpdates;
+            document.getElementById('totalNotifications').textContent = stats.total;
+            document.getElementById('sessionsDisconnected').textContent = stats.sessionsDisconnected;
+            document.getElementById('warmupExecutions').textContent = stats.warmupExecutions;
+            document.getElementById('healthUpdates').textContent = stats.healthUpdates;
+        }
+
+        function addNotification(type, data) {
+            const container = document.getElementById('notifications');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+
+            const timestamp = new Date().toLocaleTimeString('pt-BR');
+            
+            let content = '';
+            
+            switch (type) {
+                case 'session_disconnected':
+                    content = `
+                        <strong>📱 Sessão Desconectada</strong>
+                        <div>Sessão: ${data.data.sessionName} (${data.data.phone || 'Sem número'})</div>
+                        <div>Motivo: ${data.data.reason || 'Não especificado'}</div>
+                        ${data.data.campaignIds ? `<div>Campanhas afetadas: ${data.data.campaignIds.length}</div>` : ''}
+                    `;
+                    break;
+                
+                case 'warmup_progress':
+                    const progress = data.data.progress || data.data;
+                    const healthClass = getHealthClass(progress.healthScore);
+                    content = `
+                        <strong>📈 Progresso do Aquecimento</strong>
+                        <div>Campanha: ${data.data.campaignName}</div>
+                        <div>Sessão: ${data.data.sessionName}</div>
+                        <div>Progresso: ${progress.dailyMessagesSent}/${progress.dailyGoal} mensagens</div>
+                        <div>Saúde: <span class="health-score ${healthClass}">${progress.healthScore?.toFixed(1)}%</span></div>
+                    `;
+                    break;
+                
+                case 'warmup_execution':
+                    const statusIcon = data.data.status === 'scheduled' ? '⏰' : 
+                                     data.data.status === 'sent' ? '📤' : 
+                                     data.data.status === 'delivered' ? '✅' : 
+                                     data.data.status === 'failed' ? '❌' : '📋';
+                    content = `
+                        <strong>${statusIcon} Execução de Aquecimento</strong>
+                        <div>Campanha: ${data.data.campaignName}</div>
+                        <div>Para: ${data.data.contactName} (${data.data.contactPhone})</div>
+                        <div>Status: ${data.data.status}</div>
+                        <div>Mensagem: "${data.data.messageContent.substring(0, 50)}..."</div>
+                    `;
+                    break;
+                
+                case 'health_update':
+                    const trend = data.data.healthChange > 0 ? '📈' : '📉';
+                    const healthClass1 = getHealthClass(data.data.currentHealth);
+                    content = `
+                        <strong>${trend} Atualização de Saúde</strong>
+                        <div>Sessão: ${data.data.sessionName} (${data.data.phone})</div>
+                        <div>Saúde: ${data.data.previousHealth.toFixed(1)}% → <span class="health-score ${healthClass1}">${data.data.currentHealth.toFixed(1)}%</span></div>
+                        <div>Mudança: ${data.data.healthChange > 0 ? '+' : ''}${data.data.healthChange.toFixed(1)} pontos</div>
+                    `;
+                    break;
+                
+                case 'multiple_disconnections':
+                    content = `
+                        <strong>🚨 Múltiplas Desconexões</strong>
+                        <div>${data.data.count} sessões desconectaram simultaneamente</div>
+                        <div>Verifique a conexão de internet e status do WhatsApp</div>
+                    `;
+                    break;
+                
+                case 'system':
+                    content = `
+                        <strong>🔧 Sistema</strong>
+                        <div>${data.message}</div>
+                    `;
+                    break;
+                
+                case 'error':
+                    content = `
+                        <strong>⚠️ Erro</strong>
+                        <div>${data.message}</div>
+                    `;
+                    break;
+                
+                default:
+                    content = `
+                        <strong>📢 Notificação</strong>
+                        <div>${JSON.stringify(data, null, 2)}</div>
+                    `;
+            }
+
+            notification.innerHTML = `
+                ${content}
+                <span class="timestamp">${timestamp}</span>
+            `;
+
+            // Remover mensagem de "aguardando" se existir
+            const waiting = container.querySelector('[style*="text-align: center"]');
+            if (waiting) {
+                waiting.remove();
+            }
+
+            container.insertBefore(notification, container.firstChild);
+
+            // Limitar a 50 notificações
+            const notifications = container.querySelectorAll('.notification');
+            if (notifications.length > 50) {
+                notifications[notifications.length - 1].remove();
+            }
+        }
+
+        function getHealthClass(healthScore) {
+            if (healthScore >= 90) return 'health-excellent';
+            if (healthScore >= 75) return 'health-good';
+            if (healthScore >= 60) return 'health-warning';
+            return 'health-danger';
+        }
+
+        // Auto-connect com valores salvos no localStorage
+        window.onload = function() {
+            const savedToken = localStorage.getItem('authToken');
+            const savedOrgId = localStorage.getItem('organizationId');
+            const savedServerUrl = localStorage.getItem('serverUrl');
+
+            if (savedToken) document.getElementById('authToken').value = savedToken;
+            if (savedOrgId) document.getElementById('organizationId').value = savedOrgId;
+            if (savedServerUrl) document.getElementById('serverUrl').value = savedServerUrl;
+        };
+
+        // Salvar valores no localStorage
+        document.getElementById('authToken').addEventListener('change', function() {
+            localStorage.setItem('authToken', this.value);
+        });
+        document.getElementById('organizationId').addEventListener('change', function() {
+            localStorage.setItem('organizationId', this.value);
+        });
+        document.getElementById('serverUrl').addEventListener('change', function() {
+            localStorage.setItem('serverUrl', this.value);
+        });
+    </script>
+</body>
+</html>

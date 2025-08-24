@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test Client - Sistema Atendimento</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .logs {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .log-info { background-color: #d1ecf1; color: #0c5460; }
+        .log-warning { background-color: #fff3cd; color: #856404; }
+        .log-error { background-color: #f8d7da; color: #721c24; }
+        .log-success { background-color: #d4edda; color: #155724; }
+        .status-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .status-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+        }
+        .status-active { border-left: 4px solid #28a745; }
+        .status-paused { border-left: 4px solid #ffc107; }
+        .status-stopped { border-left: 4px solid #dc3545; }
+        .status-waiting { border-left: 4px solid #6c757d; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .connection-status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .connected { background: #d4edda; color: #155724; }
+        .disconnected { background: #f8d7da; color: #721c24; }
+        .connecting { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>Sistema de Monitoramento de Campanhas - WebSocket Test</h1>
+    
+    <div class="container">
+        <div id="connectionStatus" class="connection-status disconnected">
+            ❌ Desconectado
+        </div>
+        
+        <button id="connectBtn" onclick="connect()">Conectar</button>
+        <button id="disconnectBtn" onclick="disconnect()" disabled>Desconectar</button>
+        <button onclick="clearLogs()">Limpar Logs</button>
+        <button onclick="joinOrganization()">Entrar na Organização (ID: 1)</button>
+    </div>
+
+    <div class="container">
+        <h3>Status das Campanhas</h3>
+        <div id="campaignStatus" class="status-display">
+            <p>Nenhuma campanha monitorada ainda.</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>Logs em Tempo Real</h3>
+        <div id="logs" class="logs">
+            <div class="log-entry log-info">Cliente WebSocket iniciado. Clique em "Conectar" para começar.</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        let socket = null;
+        const campaignStatuses = new Map();
+
+        function updateConnectionStatus(status, message) {
+            const statusEl = document.getElementById('connectionStatus');
+            const connectBtn = document.getElementById('connectBtn');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+            
+            statusEl.className = `connection-status ${status}`;
+            
+            switch(status) {
+                case 'connected':
+                    statusEl.innerHTML = '✅ ' + message;
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    break;
+                case 'connecting':
+                    statusEl.innerHTML = '🔄 ' + message;
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = true;
+                    break;
+                case 'disconnected':
+                    statusEl.innerHTML = '❌ ' + message;
+                    connectBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                    break;
+            }
+        }
+
+        function addLog(type, message, data = null) {
+            const logsEl = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            
+            let content = `[${timestamp}] ${message}`;
+            if (data) {
+                content += `\nDados: ${JSON.stringify(data, null, 2)}`;
+            }
+            
+            logEntry.textContent = content;
+            logsEl.appendChild(logEntry);
+            logsEl.scrollTop = logsEl.scrollHeight;
+        }
+
+        function updateCampaignStatus(campaignId, data) {
+            campaignStatuses.set(campaignId, data);
+            renderCampaignStatuses();
+        }
+
+        function renderCampaignStatuses() {
+            const statusEl = document.getElementById('campaignStatus');
+            
+            if (campaignStatuses.size === 0) {
+                statusEl.innerHTML = '<p>Nenhuma campanha monitorada ainda.</p>';
+                return;
+            }
+
+            let html = '';
+            campaignStatuses.forEach((data, campaignId) => {
+                html += `
+                    <div class="status-card status-${data.status}">
+                        <h4>${data.name} (ID: ${campaignId})</h4>
+                        <p><strong>Status:</strong> ${data.status}</p>
+                        <p><strong>Descrição:</strong> ${data.description}</p>
+                        <p><strong>Sessões Ativas:</strong> ${data.activeSessions}/${data.totalSessions}</p>
+                        ${data.nextExecution ? `<p><strong>Próxima Execução:</strong> ${new Date(data.nextExecution).toLocaleString()}</p>` : ''}
+                        <p><strong>Atualizado:</strong> ${new Date().toLocaleTimeString()}</p>
+                    </div>
+                `;
+            });
+            
+            statusEl.innerHTML = html;
+        }
+
+        function connect() {
+            updateConnectionStatus('connecting', 'Conectando...');
+            
+            socket = io('http://localhost:4000', {
+                transports: ['websocket', 'polling']
+            });
+
+            socket.on('connect', () => {
+                updateConnectionStatus('connected', 'Conectado ao servidor');
+                addLog('success', 'Conectado com sucesso ao WebSocket do servidor');
+            });
+
+            socket.on('disconnect', () => {
+                updateConnectionStatus('disconnected', 'Desconectado do servidor');
+                addLog('warning', 'Desconectado do servidor WebSocket');
+            });
+
+            socket.on('connect_error', (error) => {
+                updateConnectionStatus('disconnected', 'Erro de conexão');
+                addLog('error', 'Erro ao conectar: ' + error.message);
+            });
+
+            // Eventos de campanha
+            socket.on('campaign-status', (data) => {
+                addLog('info', `Status da campanha atualizado: ${data.name}`, data);
+                updateCampaignStatus(data.campaignId, data);
+            });
+
+            socket.on('campaign-log', (data) => {
+                addLog(data.level, `[${data.campaignName}] ${data.message}`, data.data);
+            });
+
+            socket.on('execution-log', (data) => {
+                addLog('info', `Execução: ${data.campaignName} - ${data.message}`, data);
+            });
+
+            socket.on('bot-health', (data) => {
+                addLog('info', `Saúde do Bot: ${data.sessionName} - ${data.healthScore}%`, data);
+            });
+
+            // Eventos gerais
+            socket.on('notification', (data) => {
+                addLog('info', 'Notificação recebida', data);
+            });
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+            updateConnectionStatus('disconnected', 'Desconectado');
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+            addLog('info', 'Logs limpos');
+        }
+
+        function joinOrganization() {
+            if (!socket) {
+                addLog('error', 'Conecte-se primeiro antes de entrar em uma organização');
+                return;
+            }
+            
+            socket.emit('join-organization', { organizationId: 1 });
+            addLog('info', 'Solicitação para entrar na organização ID: 1 enviada');
+        }
+
+        // Cleanup quando a página for fechada
+        window.addEventListener('beforeunload', () => {
+            if (socket) {
+                socket.disconnect();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -197,7 +197,45 @@ npm run db:seed               # Popular dados
 ## 📚 **Documentação**
 
 - **API_DOCUMENTATION.md** - Documentação completa dos endpoints
+- **WHATSAPP_DOCUMENTATION.md** - Sistema WhatsApp com polling e integração
 - **DATABASE.md** - Estrutura do banco de dados
+
+---
+
+## 📱 **Sistema WhatsApp**
+
+O sistema inclui integração completa com WhatsApp usando a biblioteca Baileys:
+
+### Funcionalidades
+- **Multi-sessão**: Cada organização pode ter múltiplas sessões
+- **QR Code**: Geração automática e refresh sob demanda
+- **Status em tempo real**: Sistema de polling para notificações do cliente
+- **Gerenciamento remoto**: Conectar/desconectar sessões via API
+
+### Notificações ao Cliente
+O sistema informa o cliente quando:
+- ✅ QR Code está pronto para leitura
+- ✅ Sessão foi conectada com sucesso
+- ❌ Falha na conexão
+
+### Endpoint de Polling
+```javascript
+// Verificar status da sessão a cada 2 segundos
+const checkStatus = async () => {
+  const response = await fetch('/whatsapp/sessions/SESSION_ID/status');
+  const status = await response.json();
+  
+  if (status.qrCodeReady) {
+    // Mostrar QR Code ao usuário
+  }
+  
+  if (status.connected) {
+    // Fechar modal e atualizar UI
+  }
+};
+```
+
+**📋 Ver documentação completa em `WHATSAPP_DOCUMENTATION.md`**
 - **test-api.sh** - Script para testes automatizados
 
 ---
@@ -240,6 +278,7 @@ npm run db:seed               # Popular dados
 
 ## ✨ **Features Implementadas**
 
+### Sistema Base
 - [x] Sistema de autenticação JWT
 - [x] Controle de acesso baseado em roles
 - [x] CRUD completo de usuários
@@ -247,9 +286,21 @@ npm run db:seed               # Popular dados
 - [x] Recuperação de senha
 - [x] Gestão de sessões
 - [x] Validação robusta de dados
-- [x] Documentação completa
-- [x] Scripts de teste
+
+### Sistema WhatsApp
+- [x] Conexão multi-sessão com Baileys API
+- [x] Geração e refresh de QR Code
+- [x] Gerenciamento de status de sessões
+- [x] Sistema de polling para notificações em tempo real
+- [x] Conectar/desconectar sessões remotamente
+- [x] Isolamento por organização
+
+### Documentação & Testes
+- [x] Documentação completa da API
+- [x] Scripts de teste automatizados
 - [x] Seeds para desenvolvimento
+- [x] Coleção Postman para testes
+- [x] Guias de integração frontend
 
 **🎉 Sistema pronto para produção!**
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)

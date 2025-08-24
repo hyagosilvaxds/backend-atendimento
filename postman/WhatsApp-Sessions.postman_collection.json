@@ -1,0 +1,895 @@
+{
+	"info": {
+		"_postman_id": "whatsapp-sessions-collection",
+		"name": "Sistema Atendimento - WhatsApp Sessions",
+		"description": "Coleção completa para testar o módulo de sessões WhatsApp do sistema de atendimento",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01. Authentication",
+			"item": [
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('access_token', response.access_token);",
+									"    pm.environment.set('user_id', response.user.id);",
+									"    pm.environment.set('organization_id', response.user.organizationId);",
+									"    console.log('Token capturado:', response.access_token);",
+									"} else {",
+									"    console.log('Erro no login:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@empresa.com\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('user_access_token', response.access_token);",
+									"    pm.environment.set('user_user_id', response.user.id);",
+									"    pm.environment.set('user_organization_id', response.user.organizationId);",
+									"    console.log('Token do usuário capturado:', response.access_token);",
+									"} else {",
+									"    console.log('Erro no login do usuário:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"usuario@empresa.com\",\n  \"password\": \"user123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "02. WhatsApp Sessions - Admin",
+			"item": [
+				{
+					"name": "Create Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('session_id', response.id);",
+									"    pm.environment.set('session_number', response.sessionNumber);",
+									"    console.log('Sessão criada:', response.id);",
+									"    console.log('Número da sessão:', response.sessionNumber);",
+									"    console.log('Status:', response.status);",
+									"} else {",
+									"    console.log('Erro ao criar sessão:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sessão Principal\",\n  \"description\": \"Sessão principal para atendimento\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List All Sessions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('Total de sessões:', response.length);",
+									"    response.forEach((session, index) => {",
+									"        console.log(`Sessão ${index + 1}:`, session.name, '- Status:', session.status);",
+									"    });",
+									"} else {",
+									"    console.log('Erro ao listar sessões:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Session Details",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('Detalhes da sessão:');",
+									"    console.log('ID:', response.id);",
+									"    console.log('Nome:', response.name);",
+									"    console.log('Número:', response.sessionNumber);",
+									"    console.log('Status:', response.status);",
+									"    console.log('QR Code disponível:', response.qrCode ? 'Sim' : 'Não');",
+									"    console.log('WhatsApp ID:', response.whatsappId || 'Não conectado');",
+									"} else {",
+									"    console.log('Erro ao buscar sessão:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions/{{session_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions",
+								"{{session_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.qrCode) {",
+									"        console.log('QR Code disponível para escaneamento');",
+									"        console.log('Status:', response.status);",
+									"        // QR Code seria exibido em uma aplicação real",
+									"    } else {",
+									"        console.log('QR Code não disponível. Status atual:', response.status);",
+									"    }",
+									"} else {",
+									"    console.log('Erro ao obter QR Code:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions/{{session_id}}/qrcode",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions",
+								"{{session_id}}",
+								"qrcode"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Session Status (Polling)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('Status da sessão:', response.status);",
+									"    console.log('QR Code pronto:', response.qrCodeReady);",
+									"    console.log('Conectado:', response.connected);",
+									"    ",
+									"    if (response.qrCodeReady) {",
+									"        console.log('✅ QR Code está pronto para escaneamento!');",
+									"    }",
+									"    ",
+									"    if (response.connected) {",
+									"        console.log('✅ Sessão conectada com sucesso!');",
+									"        console.log('Telefone:', response.phone);",
+									"        // Em uma aplicação real, você fecharia o modal aqui",
+									"    }",
+									"    ",
+									"    if (response.status === 'FAILED') {",
+									"        console.log('❌ Falha na conexão da sessão');",
+									"    }",
+									"    ",
+									"    console.log('Última atualização:', response.lastUpdate);",
+									"    console.log('Timestamp:', response.timestamp);",
+									"} else {",
+									"    console.log('Erro ao verificar status:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions/{{session_id}}/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions",
+								"{{session_id}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('QR Code refresh realizado');",
+									"    console.log('Status:', response.status);",
+									"    console.log('Mensagem:', response.message);",
+									"    if (response.status === 'CONNECTING') {",
+									"        console.log('Novo QR Code será gerado em breve');",
+									"    }",
+									"} else {",
+									"    console.log('Erro ao atualizar QR Code:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions/{{session_id}}/qr/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions",
+								"{{session_id}}",
+								"qr",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Connect Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('Tentativa de conexão iniciada');",
+									"    console.log('Status:', response.status);",
+									"    console.log('Mensagem:', response.message);",
+									"} else {",
+									"    console.log('Erro ao conectar sessão:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions/{{session_id}}/connect",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions",
+								"{{session_id}}",
+								"connect"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Disconnect Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('Sessão desconectada com sucesso');",
+									"    console.log('Status:', response.status);",
+									"    console.log('Mensagem:', response.message);",
+									"} else {",
+									"    console.log('Erro ao desconectar sessão:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions/{{session_id}}/disconnect",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions",
+								"{{session_id}}",
+								"disconnect"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('Sessão atualizada com sucesso');",
+									"    console.log('Nome:', response.name);",
+									"    console.log('Descrição:', response.description);",
+									"} else {",
+									"    console.log('Erro ao atualizar sessão:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sessão Principal Atualizada\",\n  \"description\": \"Descrição atualizada da sessão principal\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions/{{session_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions",
+								"{{session_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    console.log('Sessão deletada com sucesso');",
+									"    pm.environment.unset('session_id');",
+									"    pm.environment.unset('session_number');",
+									"} else {",
+									"    console.log('Erro ao deletar sessão:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions/{{session_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions",
+								"{{session_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "03. WhatsApp Sessions - User (Limited)",
+			"item": [
+				{
+					"name": "User - List Sessions (Own Org)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('Usuário - Total de sessões visíveis:', response.length);",
+									"    response.forEach((session, index) => {",
+									"        console.log(`Sessão ${index + 1}:`, session.name, '- Status:', session.status);",
+									"    });",
+									"} else {",
+									"    console.log('Erro ao listar sessões (usuário):', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User - Try Create Session (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 403) {",
+									"    console.log('✓ Correto: Usuário não pode criar sessões (403 Forbidden)');",
+									"} else if (pm.response.code === 201) {",
+									"    console.log('⚠ Inesperado: Usuário conseguiu criar sessão');",
+									"} else {",
+									"    console.log('Resposta:', pm.response.code, pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Tentativa Usuário\",\n  \"description\": \"Usuário tentando criar sessão\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "04. Test Scenarios",
+			"item": [
+				{
+					"name": "Create Multiple Sessions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    console.log('Sessão adicional criada:', response.name);",
+									"    console.log('Número da sessão:', response.sessionNumber);",
+									"} else {",
+									"    console.log('Erro ao criar sessão adicional:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sessão Secundária\",\n  \"description\": \"Segunda sessão para testes\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Session - Validation Test",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 400) {",
+									"    console.log('✓ Validação funcionando: Nome é obrigatório');",
+									"    const response = pm.response.json();",
+									"    console.log('Erro:', response.message);",
+									"} else {",
+									"    console.log('Resposta inesperada:', pm.response.code, pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"description\": \"Sessão sem nome para testar validação\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Non-existent Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 404) {",
+									"    console.log('✓ Correto: Sessão não encontrada (404)');",
+									"} else {",
+									"    console.log('Resposta inesperada:', pm.response.code, pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions/999999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions",
+								"999999"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "05. Cleanup",
+			"item": [
+				{
+					"name": "List All Sessions for Cleanup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('Sessões existentes para limpeza:', response.length);",
+									"    if (response.length > 0) {",
+									"        // Armazena IDs das sessões para limpeza",
+									"        pm.environment.set('cleanup_session_ids', JSON.stringify(response.map(s => s.id)));",
+									"        console.log('IDs das sessões armazenados para limpeza');",
+									"    }",
+									"} else {",
+									"    console.log('Erro ao listar sessões para limpeza:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/whatsapp/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"whatsapp",
+								"sessions"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script executado antes de cada requisição",
+					"console.log('Executando requisição para:', pm.request.url);"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script executado após cada requisição",
+					"console.log('Resposta recebida:', pm.response.code, pm.response.status);"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:4000",
+			"type": "string"
+		}
+	]
+}

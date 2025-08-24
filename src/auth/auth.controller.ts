@@ -11,6 +11,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ForbiddenException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { PermissionsService } from './permissions.service';
@@ -169,12 +170,22 @@ export class AuthController {
   /**
    * @route GET /auth/users/:id/permissions
    * @desc Obter permissões de um usuário específico
-   * @access Private (Admin only)
+   * @access Private (Admin ou próprio usuário)
    */
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @CanManageOrgUsers()
+  @UseGuards(JwtAuthGuard)
   @Get('users/:id/permissions')
-  async getUserPermissions(@Param('id') id: string) {
+  async getUserPermissions(@Param('id') id: string, @Request() req: any) {
+    const currentUser = req.user;
+    
+    // Permitir se for o próprio usuário ou se for admin
+    const canAccess = currentUser.id === id || 
+                     currentUser.role === 'SUPER_ADMIN' || 
+                     currentUser.role === 'ORG_ADMIN';
+    
+    if (!canAccess) {
+      throw new ForbiddenException('Você só pode visualizar suas próprias permissões');
+    }
+    
     return this.permissionsService.getUserPermissions(id);
   }
 

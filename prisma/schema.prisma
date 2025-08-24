@@ -41,6 +41,8 @@ enum PermissionResource {
   CONTACTS
   // Mensagens
   MESSAGES
+  // Conversações
+  CONVERSATIONS
   // Configurações da organização
   ORG_SETTINGS
   // Usuários da organização
@@ -59,6 +61,25 @@ enum PermissionResource {
   DEPARTMENTS
   // Filas de atendimento
   QUEUES
+  // Sessões WhatsApp
+  WHATSAPP_SESSIONS
+  // Aquecimento de chips
+  WARMUP_CAMPAIGNS
+}
+
+enum WhatsAppSessionStatus {
+  DISCONNECTED
+  CONNECTING
+  CONNECTED
+  QR_CODE
+  FAILED
+}
+
+enum WhatsAppSessionType {
+  MAIN
+  SUPPORT
+  SALES
+  MARKETING
 }
 
 model SuperAdmin {
@@ -77,12 +98,18 @@ model Organization {
   name        String
   slug        String   @unique
   description String?
+  plan        String   @default("basic") // basic, pro, enterprise
   status      UserStatus @default(ACTIVE)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Relacionamentos
-  users       User[]
+  users           User[]
+  whatsappSessions WhatsAppSession[]
+  contacts        Contact[]
+  tags            Tag[]
+  warmupCampaigns WarmupCampaign[]
+  conversations   Conversation[]
 
   @@map("organizations")
 }
@@ -108,6 +135,19 @@ model User {
 
   // Permissões personalizadas do usuário
   userPermissions UserPermission[]
+
+  // Sessões WhatsApp criadas pelo usuário
+  createdWhatsAppSessions WhatsAppSession[] @relation("UserCreatedWhatsAppSessions")
+
+  // Contatos criados pelo usuário
+  createdContacts Contact[] @relation("UserCreatedContacts")
+
+  // Campanhas de aquecimento criadas pelo usuário
+  createdWarmupCampaigns WarmupCampaign[] @relation("UserCreatedWarmupCampaigns")
+
+  // Sistema de conversação
+  conversationUsers ConversationUser[]
+  sentMessages      Message[]
 
   @@map("users")
 }
@@ -177,4 +217,575 @@ model Session {
   createdAt DateTime @default(now())
 
   @@map("sessions")
+}
+
+model WhatsAppSession {
+  id                String                @id @default(cuid())
+  name              String
+  sessionId         String                @unique // ID único da sessão
+  phone             String?               // Número do WhatsApp conectado
+  qrCode            String?               // QR Code atual
+  status            WhatsAppSessionStatus @default(DISCONNECTED)
+  type              WhatsAppSessionType   @default(MAIN)
+  webhookUrl        String?               // URL para receber webhooks
+  isActive          Boolean               @default(true)
+  lastConnectedAt   DateTime?
+  lastDisconnectedAt DateTime?
+  authData          Json?                 // Dados de autenticação do Baileys
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  // Relacionamentos
+  organizationId    String
+  organization      Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdById       String
+  createdBy         User                  @relation("UserCreatedWhatsAppSessions", fields: [createdById], references: [id])
+
+  // Mensagens enviadas por esta sessão
+  messages          WhatsAppMessage[]
+
+  // Campanhas de aquecimento usando esta sessão
+  warmupCampaignSessions WarmupCampaignSession[]
+  
+  // Execuções de aquecimento desta sessão (como remetente)
+  warmupExecutionsFrom  WarmupExecution[] @relation("WarmupExecutionFromSession")
+  
+  // Execuções de aquecimento desta sessão (como destinatário)
+  warmupExecutionsTo    WarmupExecution[] @relation("WarmupExecutionToSession")
+
+  // Sistema de conversação
+  conversations     Conversation[]
+
+  @@map("whatsapp_sessions")
+}
+
+model Contact {
+  id              String   @id @default(cuid())
+  name            String
+  phone           String?
+  email           String?
+  document        String?  // CPF/CNPJ
+  birthDate       DateTime?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  notes           String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relacionamentos
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdById     String?
+  createdBy       User?    @relation("UserCreatedContacts", fields: [createdById], references: [id])
+
+  // Tags associadas ao contato
+  contactTags     ContactTag[]
+
+  // Mensagens associadas ao contato
+  messages        WhatsAppMessage[]
+
+  // Campanhas de aquecimento que incluem este contato
+  warmupCampaignContacts WarmupCampaignContact[]
+  
+  // Execuções de aquecimento para este contato
+  warmupExecutions WarmupExecution[]
+  
+  // Mensagens de aquecimento enviadas para este contato
+  warmupSentMessages WarmupSentMessage[]
+
+  // Sistema de conversação
+  conversations   Conversation[]
+
+  @@unique([phone, organizationId]) // Um número por organização
+  @@map("contacts")
+}
+
+model Tag {
+  id              String   @id @default(cuid())
+  name            String
+  color           String?  // Cor da tag em hex
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relacionamentos
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Contatos com esta tag
+  contactTags     ContactTag[]
+
+  @@unique([name, organizationId]) // Nome único por organização
+  @@map("tags")
+}
+
+model ContactTag {
+  id        String   @id @default(cuid())
+  contactId String
+  tagId     String
+  createdAt DateTime @default(now())
+
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, tagId])
+  @@map("contact_tags")
+}
+
+// Sistema de Conversação
+enum ConversationType {
+  CONTACT     // Conversa com contato individual
+  GROUP       // Conversa em grupo
+  BROADCAST   // Lista de transmissão
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  AUDIO
+  VIDEO
+  DOCUMENT
+  LOCATION
+  CONTACT
+  STICKER
+  REACTION
+  POLL
+}
+
+enum MessageStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  DELETED
+}
+
+model Conversation {
+  id                  String           @id @default(cuid())
+  type                ConversationType
+  
+  // Identificadores
+  chatId              String           // ID único do chat no WhatsApp
+  name                String?          // Nome da conversa (para grupos)
+  description         String?          // Descrição da conversa
+  avatar              String?          // URL do avatar
+  
+  // Controle de estado
+  isActive            Boolean          @default(true)
+  isArchived          Boolean          @default(false)
+  isPinned            Boolean          @default(false)
+  isMuted             Boolean          @default(false)
+  unreadCount         Int              @default(0)
+  
+  // Timestamps
+  lastMessageAt       DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  // Relacionamentos
+  organizationId      String
+  organization        Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  sessionId           String
+  session             WhatsAppSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  contactId           String?          // Para conversas individuais
+  contact             Contact?         @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  
+  // Mensagens da conversa
+  messages            Message[]
+  
+  // Participantes (para grupos)
+  participants        ConversationParticipant[]
+  
+  // Usuários que têm acesso à conversa
+  conversationUsers   ConversationUser[]
+
+  @@unique([chatId, sessionId]) // chatId único por sessão
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id              String       @id @default(cuid())
+  conversationId  String
+  participantId   String       // ID do participante no WhatsApp
+  participantName String       // Nome do participante
+  participantPhone String?     // Telefone do participante
+  isAdmin         Boolean      @default(false)
+  joinedAt        DateTime     @default(now())
+  leftAt          DateTime?
+
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, participantId])
+  @@map("conversation_participants")
+}
+
+model ConversationUser {
+  id              String       @id @default(cuid())
+  conversationId  String
+  userId          String
+  
+  // Permissões
+  canRead         Boolean      @default(true)
+  canWrite        Boolean      @default(true)
+  canManage       Boolean      @default(false)
+  
+  // Estado da conversa para este usuário
+  isAssigned      Boolean      @default(false)
+  lastReadAt      DateTime?
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@map("conversation_users")
+}
+
+model Message {
+  id              String        @id @default(cuid())
+  
+  // Identificadores
+  messageId       String?       // ID da mensagem no WhatsApp
+  conversationId  String
+  
+  // Conteúdo
+  type            MessageType
+  content         String?       // Texto da mensagem
+  mediaUrl        String?       // URL da mídia
+  mediaCaption    String?       // Legenda da mídia
+  fileName        String?       // Nome do arquivo
+  fileSize        Int?          // Tamanho do arquivo em bytes
+  mimeType        String?       // Tipo MIME do arquivo
+  
+  // Metadados
+  fromMe          Boolean       // Se foi enviada por nós
+  fromUserId      String?       // Usuário que enviou (se fromMe = true)
+  fromParticipant String?       // ID do participante que enviou (se fromMe = false)
+  fromName        String?       // Nome de quem enviou
+  
+  // Status e timestamps
+  status          MessageStatus @default(PENDING)
+  timestamp       DateTime      // Timestamp original da mensagem
+  sentAt          DateTime?
+  deliveredAt     DateTime?
+  readAt          DateTime?
+  editedAt        DateTime?
+  
+  // Controle
+  isDeleted       Boolean       @default(false)
+  isForwarded     Boolean       @default(false)
+  isStarred       Boolean       @default(false)
+  
+  // Mensagem citada/respondida
+  quotedMessageId String?
+  quotedMessage   Message?      @relation("MessageQuote", fields: [quotedMessageId], references: [id])
+  quotedMessages  Message[]     @relation("MessageQuote")
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relacionamentos
+  conversation    Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  fromUser        User?         @relation(fields: [fromUserId], references: [id], onDelete: SetNull)
+  
+  // Reações à mensagem
+  reactions       MessageReaction[]
+
+  @@index([conversationId, timestamp])
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model MessageReaction {
+  id        String   @id @default(cuid())
+  messageId String
+  emoji     String   // Emoji da reação
+  fromMe    Boolean  // Se a reação é nossa
+  fromUser  String?  // ID do usuário (se fromMe = true)
+  fromParticipant String? // ID do participante (se fromMe = false)
+  createdAt DateTime @default(now())
+
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, emoji, fromUser, fromParticipant])
+  @@map("message_reactions")
+}
+
+// Manter o modelo antigo para compatibilidade (será migrado)
+model WhatsAppMessage {
+  id              String   @id @default(cuid())
+  messageId       String   @unique // ID da mensagem do WhatsApp
+  chatId          String   // ID do chat (número do contato)
+  fromMe          Boolean  // Se a mensagem foi enviada por nós
+  messageType     String   // text, image, audio, video, document, etc.
+  content         String?  // Conteúdo da mensagem (texto)
+  mediaUrl        String?  // URL da mídia se houver
+  timestamp       DateTime
+  status          String?  // sent, delivered, read, failed
+  createdAt       DateTime @default(now())
+
+  // Relacionamentos
+  sessionId       String
+  session         WhatsAppSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  contactId       String?
+  contact         Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@map("whatsapp_messages")
+}
+
+// Modelos para Sistema de Aquecimento
+model WarmupCampaign {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  isActive        Boolean  @default(true)
+  
+  // Configurações da campanha
+  dailyMessageGoal     Int      @default(50)    // Meta diária de mensagens
+  minIntervalMinutes   Int      @default(30)    // Intervalo mínimo entre mensagens
+  maxIntervalMinutes   Int      @default(180)   // Intervalo máximo entre mensagens
+  workingHourStart     Int      @default(8)     // Hora de início (8h)
+  workingHourEnd       Int      @default(18)    // Hora de fim (18h)
+  
+  // Janela de envio
+  useWorkingHours      Boolean  @default(true)  // Usar horário comercial
+  allowWeekends        Boolean  @default(false) // Permitir fins de semana
+  
+  // Randomização
+  randomizeMessages    Boolean  @default(true)  // Aleatorizar mensagens
+  randomizeInterval    Boolean  @default(true)  // Aleatorizar intervalos
+  
+  // Configurações de conversas internas (entre sessões)
+  enableInternalConversations Boolean @default(true)   // Permitir conversas entre sessões
+  internalConversationRatio   Float   @default(0.3)    // 30% das mensagens são entre sessões
+  minSessionsForInternal      Int     @default(2)       // Mínimo de sessões para conversas internas
+  
+  // Configurações de pausas automáticas
+  enableAutoPauses           Boolean @default(false)  // Habilitar pausas automáticas
+  maxPauseTimeMinutes        Int     @default(30)     // Tempo máximo de pausa em minutos
+  minConversationTimeMinutes Int     @default(20)     // Tempo mínimo de conversa antes da pausa
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relacionamentos
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdById     String
+  createdBy       User     @relation("UserCreatedWarmupCampaigns", fields: [createdById], references: [id])
+
+  // Sessões participantes
+  campaignSessions  WarmupCampaignSession[]
+  
+  // Contatos selecionados
+  campaignContacts  WarmupCampaignContact[]
+  
+  // Templates de mensagens
+  messageTemplates  WarmupMessageTemplate[]
+  
+  // Arquivos de mídia
+  mediaFiles       WarmupMediaFile[]
+  
+  // Execuções da campanha
+  executions       WarmupExecution[]
+
+  @@map("warmup_campaigns")
+}
+
+model WarmupCampaignSession {
+  id            String   @id @default(cuid())
+  campaignId    String
+  sessionId     String
+  isActive      Boolean  @default(true)
+  
+  // Saúde do número
+  healthScore   Float    @default(100.0) // 0-100
+  
+  // Estatísticas de uso
+  dailyMessagesSent     Int      @default(0)
+  totalMessagesSent     Int      @default(0)
+  lastMessageAt         DateTime?
+  
+  // Controle de limite diário
+  lastResetDate         DateTime @default(now())
+  
+  // Controle de pausas automáticas
+  currentPauseUntil     DateTime?  // Quando a pausa atual termina
+  lastConversationStart DateTime?  // Quando a última conversa começou
+  conversationStartedAt DateTime?  // Timestamp do início da conversa atual
+  
+  // Configurações de Auto-Read para esta sessão de aquecimento
+  autoReadEnabled   Boolean               @default(false) // Se deve marcar mensagens como lidas automaticamente
+  autoReadInterval  Int                   @default(30)    // Intervalo em segundos para verificar mensagens não lidas
+  autoReadMinDelay  Int                   @default(5)     // Delay mínimo em segundos antes de marcar como lida
+  autoReadMaxDelay  Int                   @default(60)    // Delay máximo em segundos antes de marcar como lida
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  campaign      WarmupCampaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  session       WhatsAppSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  // Mensagens enviadas por esta sessão na campanha
+  sentMessages  WarmupSentMessage[]
+
+  // Métricas de saúde desta sessão
+  healthMetrics WarmupHealthMetric[]
+
+  @@unique([campaignId, sessionId])
+  @@map("warmup_campaign_sessions")
+}
+
+model WarmupCampaignContact {
+  id            String   @id @default(cuid())
+  campaignId    String
+  contactId     String
+  isActive      Boolean  @default(true)
+  priority      Int      @default(1) // 1-5, onde 5 é maior prioridade
+  
+  createdAt     DateTime @default(now())
+
+  campaign      WarmupCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contact       Contact        @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, contactId])
+  @@map("warmup_campaign_contacts")
+}
+
+model WarmupMessageTemplate {
+  id            String   @id @default(cuid())
+  campaignId    String
+  content       String
+  messageType   String   @default("text") // text, image, audio, document, video
+  weight        Int      @default(1)     // Peso para seleção aleatória
+  isActive      Boolean  @default(true)
+  mediaFileId   String?  // Referência para arquivo de mídia
+  
+  // Variáveis que podem ser substituídas: {nome}, {empresa}, etc.
+  variables     Json?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  campaign      WarmupCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  mediaFile     WarmupMediaFile? @relation(fields: [mediaFileId], references: [id], onDelete: SetNull)
+
+  // Execuções que usam este template
+  executions    WarmupExecution[]
+
+  @@map("warmup_message_templates")
+}
+
+model WarmupMediaFile {
+  id            String   @id @default(cuid())
+  campaignId    String
+  fileName      String
+  filePath      String
+  fileType      String   // image, audio, video, document
+  fileSize      Int
+  mimeType      String
+  isActive      Boolean  @default(true)
+  
+  createdAt     DateTime @default(now())
+
+  campaign      WarmupCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  // Templates que usam este arquivo
+  templates     WarmupMessageTemplate[]
+  // Execuções que usam este arquivo
+  executions    WarmupExecution[]
+
+  @@map("warmup_media_files")
+}
+
+model WarmupExecution {
+  id              String   @id @default(cuid())
+  campaignId      String
+  fromSessionId   String   // Sessão que está enviando
+  toSessionId     String?  // Sessão que vai receber (null para contatos externos)
+  contactId       String?  // Contato externo (null para conversas entre sessões)
+  templateId      String?
+  mediaFileId     String?
+  
+  messageContent  String
+  messageType     String   @default("text")
+  
+  // Tipo de execução
+  executionType   String   @default("external") // "external" (para contatos) ou "internal" (entre sessões)
+  
+  status          String   @default("pending") // pending, sent, failed, delivered, read
+  errorMessage    String?
+  
+  scheduledAt     DateTime
+  sentAt          DateTime?
+  deliveredAt     DateTime?
+  readAt          DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  campaign        WarmupCampaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  fromSession     WhatsAppSession         @relation("WarmupExecutionFromSession", fields: [fromSessionId], references: [id], onDelete: Cascade)
+  toSession       WhatsAppSession?        @relation("WarmupExecutionToSession", fields: [toSessionId], references: [id], onDelete: Cascade)
+  contact         Contact?                @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  template        WarmupMessageTemplate?  @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  mediaFile       WarmupMediaFile?        @relation(fields: [mediaFileId], references: [id], onDelete: SetNull)
+
+  @@map("warmup_executions")
+}
+
+model WarmupSentMessage {
+  id                String   @id @default(cuid())
+  campaignSessionId String
+  contactId         String
+  messageId         String?  // ID da mensagem no WhatsApp
+  content           String
+  messageType       String   @default("text")
+  
+  sentAt            DateTime @default(now())
+  deliveredAt       DateTime?
+  readAt            DateTime?
+  
+  // Métricas para cálculo de saúde
+  responseTime      Int?     // Tempo de resposta em minutos
+  gotResponse       Boolean  @default(false)
+  
+  campaignSession   WarmupCampaignSession @relation(fields: [campaignSessionId], references: [id], onDelete: Cascade)
+  contact           Contact               @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@map("warmup_sent_messages")
+}
+
+// Adicionar as relações aos modelos existentes
+model WarmupHealthMetric {
+  id                    String   @id @default(cuid())
+  campaignSessionId     String
+  
+  // Métricas diárias
+  date                  DateTime @db.Date
+  messagesSent          Int      @default(0)
+  messagesDelivered     Int      @default(0)
+  messagesRead          Int      @default(0)
+  responsesReceived     Int      @default(0)
+  
+  // Velocidade de envio (mensagens por hora)
+  averageMessagesPerHour Float   @default(0)
+  
+  // Saúde calculada para o dia
+  healthScore           Float    @default(100.0)
+  
+  createdAt             DateTime @default(now())
+
+  campaignSession       WarmupCampaignSession @relation(fields: [campaignSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignSessionId, date])
+  @@map("warmup_health_metrics")
 }

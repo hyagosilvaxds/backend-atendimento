@@ -51,6 +51,22 @@ export const CanDeleteMessages = () =>
 export const CanManageMessages = () => 
   RequirePermissions({ action: PermissionAction.MANAGE, resource: PermissionResource.MESSAGES });
 
+// Permissões para Conversações
+export const CanCreateConversations = () => 
+  RequirePermissions({ action: PermissionAction.CREATE, resource: PermissionResource.CONVERSATIONS });
+
+export const CanReadConversations = () => 
+  RequirePermissions({ action: PermissionAction.READ, resource: PermissionResource.CONVERSATIONS });
+
+export const CanUpdateConversations = () => 
+  RequirePermissions({ action: PermissionAction.UPDATE, resource: PermissionResource.CONVERSATIONS });
+
+export const CanDeleteConversations = () => 
+  RequirePermissions({ action: PermissionAction.DELETE, resource: PermissionResource.CONVERSATIONS });
+
+export const CanManageConversations = () => 
+  RequirePermissions({ action: PermissionAction.MANAGE, resource: PermissionResource.CONVERSATIONS });
+
 export const CanManageOrgSettings = () => 
   RequirePermissions({ action: PermissionAction.MANAGE, resource: PermissionResource.ORG_SETTINGS });
 
@@ -71,6 +87,37 @@ export const CanManageAutomations = () =>
 
 export const CanManageTags = () => 
   RequirePermissions({ action: PermissionAction.MANAGE, resource: PermissionResource.TAGS });
+
+export const CanCreateWhatsAppSessions = () => 
+  RequirePermissions({ action: PermissionAction.CREATE, resource: PermissionResource.WHATSAPP_SESSIONS });
+
+export const CanReadWhatsAppSessions = () => 
+  RequirePermissions({ action: PermissionAction.READ, resource: PermissionResource.WHATSAPP_SESSIONS });
+
+export const CanUpdateWhatsAppSessions = () => 
+  RequirePermissions({ action: PermissionAction.UPDATE, resource: PermissionResource.WHATSAPP_SESSIONS });
+
+export const CanDeleteWhatsAppSessions = () => 
+  RequirePermissions({ action: PermissionAction.DELETE, resource: PermissionResource.WHATSAPP_SESSIONS });
+
+export const CanManageWhatsAppSessions = () => 
+  RequirePermissions({ action: PermissionAction.MANAGE, resource: PermissionResource.WHATSAPP_SESSIONS });
+
+// Permissões para Warmup Campaigns
+export const CanCreateWarmupCampaigns = () => 
+  RequirePermissions({ action: PermissionAction.CREATE, resource: PermissionResource.WARMUP_CAMPAIGNS });
+
+export const CanReadWarmupCampaigns = () => 
+  RequirePermissions({ action: PermissionAction.READ, resource: PermissionResource.WARMUP_CAMPAIGNS });
+
+export const CanUpdateWarmupCampaigns = () => 
+  RequirePermissions({ action: PermissionAction.UPDATE, resource: PermissionResource.WARMUP_CAMPAIGNS });
+
+export const CanDeleteWarmupCampaigns = () => 
+  RequirePermissions({ action: PermissionAction.DELETE, resource: PermissionResource.WARMUP_CAMPAIGNS });
+
+export const CanManageWarmupCampaigns = () => 
+  RequirePermissions({ action: PermissionAction.MANAGE, resource: PermissionResource.WARMUP_CAMPAIGNS });
 
 export const CanReadTags = () => 
   RequirePermissions({ action: PermissionAction.READ, resource: PermissionResource.TAGS });

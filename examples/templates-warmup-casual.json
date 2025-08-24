@@ -1,0 +1,145 @@
+{
+  "templates": [
+    {
+      "name": "Saudação Matinal Casual",
+      "content": "{saudacao} {nome}! Como você está hoje? Espero que tenha uma ótima segunda-feira!",
+      "messageType": "text",
+      "weight": 5,
+      "isActive": true
+    },
+    {
+      "name": "Pergunta sobre Final de Semana",
+      "content": "Oi {nome}! Tudo bem? Como foi seu final de semana? Fez algo legal?",
+      "messageType": "text",
+      "weight": 4,
+      "isActive": true
+    },
+    {
+      "name": "Mensagem de Apoio Amigável",
+      "content": "E aí {nome}! Espero que esteja tudo bem com você e sua família. Qualquer coisa, pode contar comigo!",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Trabalho",
+      "content": "Oi {nome}! Como andam as coisas no trabalho? Espero que esteja tudo correndo bem por aí!",
+      "messageType": "text",
+      "weight": 4,
+      "isActive": true
+    },
+    {
+      "name": "Saudação da Tarde",
+      "content": "Boa tarde {nome}! Como está sendo seu dia? Espero que esteja produtivo!",
+      "messageType": "text",
+      "weight": 4,
+      "isActive": true
+    },
+    {
+      "name": "Pergunta Casual Geral",
+      "content": "Oi {nome}! Como você está? Faz tempo que não conversamos, né?",
+      "messageType": "text",
+      "weight": 5,
+      "isActive": true
+    },
+    {
+      "name": "Mensagem de Quinta-feira",
+      "content": "{saudacao} {nome}! Já é quinta-feira! Como está sendo sua semana?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Clima",
+      "content": "Oi {nome}! {saudacao}! Como está o tempo aí na sua cidade hoje?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Mensagem de Motivação",
+      "content": "E aí {nome}! {saudacao}! Espero que esteja com muito ânimo e energia hoje!",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Pergunta sobre Projetos",
+      "content": "Oi {nome}! Como estão seus projetos? Tudo caminhando bem?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Saudação de Sexta-feira",
+      "content": "{saudacao} {nome}! Finalmente sexta-feira! Já tem planos para o fim de semana?",
+      "messageType": "text",
+      "weight": 4,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Saúde",
+      "content": "Oi {nome}! Como você está se cuidando? Espero que esteja com saúde em dia!",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Mensagem de Terça-feira",
+      "content": "{saudacao} {nome}! Como está sendo o início da semana? Tudo tranquilo?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Pergunta sobre Novidades",
+      "content": "E aí {nome}! Alguma novidade interessante para me contar?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Família",
+      "content": "Oi {nome}! Como está a família? Espero que todos estejam bem!",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Mensagem de Quarta-feira",
+      "content": "{saudacao} {nome}! Meio da semana chegando! Como você está se sentindo?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Hobbies",
+      "content": "Oi {nome}! Tem feito alguma atividade legal nas horas vagas?",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Saudação Noturna",
+      "content": "Boa noite {nome}! Como foi seu dia hoje? Espero que tenha sido produtivo!",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Pergunta sobre Planos",
+      "content": "{saudacao} {nome}! Quais são seus planos para os próximos dias?",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Mensagem de Energia Positiva",
+      "content": "Oi {nome}! Espero que você esteja cheio de energia e positividade hoje! {saudacao}!",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    }
+  ],
+  "replaceExisting": false
+}

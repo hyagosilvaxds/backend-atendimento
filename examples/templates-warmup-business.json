@@ -1,0 +1,110 @@
+{
+  "templates": [
+    {
+      "name": "Pergunta sobre Negócios Sutil",
+      "content": "Oi {nome}! Como andam os negócios por aí? Tudo correndo bem?",
+      "messageType": "text",
+      "weight": 4,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Mercado",
+      "content": "{saudacao} {nome}! Como você vê o mercado agora? Está otimista?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Apoio Profissional",
+      "content": "E aí {nome}! Se precisar de alguma coisa para o seu negócio, pode contar comigo, ok?",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Resultados",
+      "content": "Oi {nome}! Como estão as vendas este mês? Espero que esteja indo bem!",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Networking Casual",
+      "content": "{saudacao} {nome}! Sempre bom manter contato com pessoas como você!",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Pergunta sobre Desafios",
+      "content": "E aí {nome}! Quais têm sido seus maiores desafios ultimamente?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Inovação",
+      "content": "Oi {nome}! Tem acompanhado as novidades do setor? O que achou?",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Relacionamento Comercial",
+      "content": "{saudacao} {nome}! Como está a sua carteira de clientes? Crescendo?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Estratégias",
+      "content": "E aí {nome}! Quais estratégias têm funcionado melhor para você?",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Apoio em Projetos",
+      "content": "Oi {nome}! Como estão os projetos? Se precisar de uma segunda opinião, estou aqui!",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Oportunidades",
+      "content": "{saudacao} {nome}! Tem visto boas oportunidades no mercado?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Networking Profissional",
+      "content": "E aí {nome}! Sempre gosto de saber como estão as pessoas do nosso ramo!",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Crescimento",
+      "content": "Oi {nome}! Como estão os planos de crescimento? Animado com os próximos passos?",
+      "messageType": "text",
+      "weight": 3,
+      "isActive": true
+    },
+    {
+      "name": "Relacionamento de Longo Prazo",
+      "content": "{saudacao} {nome}! É sempre um prazer manter contato com você!",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    },
+    {
+      "name": "Conversa sobre Tendências",
+      "content": "E aí {nome}! O que você acha das tendências atuais do setor?",
+      "messageType": "text",
+      "weight": 2,
+      "isActive": true
+    }
+  ],
+  "replaceExisting": false
+}

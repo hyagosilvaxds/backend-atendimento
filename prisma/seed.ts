@@ -28,6 +28,13 @@ async function setupPermissions() {
     { action: 'UPDATE', resource: 'MESSAGES', description: 'Atualizar mensagens' },
     { action: 'DELETE', resource: 'MESSAGES', description: 'Excluir mensagens' },
     
+    // Conversações
+    { action: 'CREATE', resource: 'CONVERSATIONS', description: 'Criar conversações' },
+    { action: 'READ', resource: 'CONVERSATIONS', description: 'Visualizar conversações' },
+    { action: 'UPDATE', resource: 'CONVERSATIONS', description: 'Atualizar conversações' },
+    { action: 'DELETE', resource: 'CONVERSATIONS', description: 'Excluir conversações' },
+    { action: 'MANAGE', resource: 'CONVERSATIONS', description: 'Gerenciar completamente conversações' },
+    
     // Configurações da organização
     { action: 'MANAGE', resource: 'ORG_SETTINGS', description: 'Gerenciar configurações da organização' },
     { action: 'MANAGE', resource: 'ORG_USERS', description: 'Gerenciar usuários da organização' },
@@ -41,6 +48,13 @@ async function setupPermissions() {
     // Tags
     { action: 'READ', resource: 'TAGS', description: 'Visualizar tags' },
     { action: 'MANAGE', resource: 'TAGS', description: 'Gerenciar tags' },
+    
+    // Sessões WhatsApp
+    { action: 'CREATE', resource: 'WHATSAPP_SESSIONS', description: 'Criar sessões WhatsApp' },
+    { action: 'READ', resource: 'WHATSAPP_SESSIONS', description: 'Visualizar sessões WhatsApp' },
+    { action: 'UPDATE', resource: 'WHATSAPP_SESSIONS', description: 'Atualizar sessões WhatsApp' },
+    { action: 'DELETE', resource: 'WHATSAPP_SESSIONS', description: 'Excluir sessões WhatsApp' },
+    { action: 'MANAGE', resource: 'WHATSAPP_SESSIONS', description: 'Gerenciar completamente sessões WhatsApp' },
   ];
 
   for (const perm of permissions) {
@@ -65,12 +79,21 @@ async function setupPermissions() {
     // ORG_ADMIN - Todas as permissões da organização
     { role: 'ORG_ADMIN', action: 'MANAGE', resource: 'SESSIONS' },
     { role: 'ORG_ADMIN', action: 'MANAGE', resource: 'CONTACTS' },
-    { role: 'ORG_ADMIN', action: 'MANAGE', resource: 'MESSAGES' },
+        { role: 'ORG_ADMIN', action: 'CREATE', resource: 'MESSAGES' },
+    { role: 'ORG_ADMIN', action: 'READ', resource: 'MESSAGES' },
+    { role: 'ORG_ADMIN', action: 'UPDATE', resource: 'MESSAGES' },
+    { role: 'ORG_ADMIN', action: 'DELETE', resource: 'MESSAGES' },
+    { role: 'ORG_ADMIN', action: 'MANAGE', resource: 'CONVERSATIONS' },
+    { role: 'ORG_ADMIN', action: 'CREATE', resource: 'CONVERSATIONS' },
+    { role: 'ORG_ADMIN', action: 'READ', resource: 'CONVERSATIONS' },
+    { role: 'ORG_ADMIN', action: 'UPDATE', resource: 'CONVERSATIONS' },
+    { role: 'ORG_ADMIN', action: 'DELETE', resource: 'CONVERSATIONS' },,
     { role: 'ORG_ADMIN', action: 'MANAGE', resource: 'ORG_SETTINGS' },
     { role: 'ORG_ADMIN', action: 'MANAGE', resource: 'ORG_USERS' },
     { role: 'ORG_ADMIN', action: 'READ', resource: 'REPORTS' },
     { role: 'ORG_ADMIN', action: 'MANAGE', resource: 'INTEGRATIONS' },
     { role: 'ORG_ADMIN', action: 'MANAGE', resource: 'TAGS' },
+    { role: 'ORG_ADMIN', action: 'MANAGE', resource: 'WHATSAPP_SESSIONS' },
 
     // ORG_USER - Permissões operacionais
     { role: 'ORG_USER', action: 'CREATE', resource: 'SESSIONS' },
@@ -81,29 +104,37 @@ async function setupPermissions() {
     { role: 'ORG_USER', action: 'UPDATE', resource: 'CONTACTS' },
     { role: 'ORG_USER', action: 'CREATE', resource: 'MESSAGES' },
     { role: 'ORG_USER', action: 'READ', resource: 'MESSAGES' },
+    { role: 'ORG_USER', action: 'CREATE', resource: 'CONVERSATIONS' },
+    { role: 'ORG_USER', action: 'READ', resource: 'CONVERSATIONS' },
+    { role: 'ORG_USER', action: 'UPDATE', resource: 'CONVERSATIONS' },
     { role: 'ORG_USER', action: 'READ', resource: 'TAGS' },
+    { role: 'ORG_USER', action: 'CREATE', resource: 'WHATSAPP_SESSIONS' },
+    { role: 'ORG_USER', action: 'READ', resource: 'WHATSAPP_SESSIONS' },
+    { role: 'ORG_USER', action: 'UPDATE', resource: 'WHATSAPP_SESSIONS' },
 
     // ORG_VIEWER - Apenas visualização
     { role: 'ORG_VIEWER', action: 'READ', resource: 'SESSIONS' },
     { role: 'ORG_VIEWER', action: 'READ', resource: 'CONTACTS' },
     { role: 'ORG_VIEWER', action: 'READ', resource: 'MESSAGES' },
+    { role: 'ORG_VIEWER', action: 'READ', resource: 'CONVERSATIONS' },
     { role: 'ORG_VIEWER', action: 'READ', resource: 'TAGS' },
+    { role: 'ORG_VIEWER', action: 'READ', resource: 'WHATSAPP_SESSIONS' },
   ];
 
   for (const rp of rolePermissions) {
     const permission = await prisma.permission.findUnique({
       where: {
         action_resource: {
-          action: rp.action as any,
-          resource: rp.resource as any,
+          action: rp?.action as any,
+          resource: rp?.resource as any,
         },
       },
     });
 
-    if (permission) {
+    if (permission && rp) {
       const existing = await prisma.rolePermission.findFirst({
         where: {
-          role: rp.role as any,
+          role: rp?.role as any,
           permissionId: permission.id,
           organizationId: null,
         },
@@ -112,7 +143,7 @@ async function setupPermissions() {
       if (!existing) {
         await prisma.rolePermission.create({
           data: {
-            role: rp.role as any,
+            role: rp?.role as any,
             permissionId: permission.id,
             organizationId: null,
           },
