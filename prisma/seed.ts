@@ -122,19 +122,24 @@ async function setupPermissions() {
   ];
 
   for (const rp of rolePermissions) {
+    if (!rp || !rp.action || !rp.resource || !rp.role) {
+      console.warn('Permissão inválida encontrada, pulando...', rp);
+      continue;
+    }
+
     const permission = await prisma.permission.findUnique({
       where: {
         action_resource: {
-          action: rp?.action as any,
-          resource: rp?.resource as any,
+          action: rp.action as any,
+          resource: rp.resource as any,
         },
       },
     });
 
-    if (permission && rp) {
+    if (permission) {
       const existing = await prisma.rolePermission.findFirst({
         where: {
-          role: rp?.role as any,
+          role: rp.role as any,
           permissionId: permission.id,
           organizationId: null,
         },
@@ -143,7 +148,7 @@ async function setupPermissions() {
       if (!existing) {
         await prisma.rolePermission.create({
           data: {
-            role: rp?.role as any,
+            role: rp.role as any,
             permissionId: permission.id,
             organizationId: null,
           },
